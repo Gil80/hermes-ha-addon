@@ -33,7 +33,7 @@ emit_dashboard_maps() {
         "" "${prefix}/dashboard";
     }
     map \$http_x_ingress_path \$dashboard_forwarded_prefix_${i} {
-        default "${prefix}/dashboard";
+        default "\$http_x_ingress_path${prefix}/dashboard";
         "" \$dashboard_proxy_prefix_${i};
     }
 MAP

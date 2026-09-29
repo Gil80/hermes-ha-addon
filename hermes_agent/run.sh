@@ -924,7 +924,20 @@ start_dashboard_for_profile() {
     (
         cd "$home"
         export HERMES_HOME="$home"
-        exec "$VENV_DIR/bin/python" -c "from hermes_cli.web_server import start_server; start_server(host='127.0.0.1', port=${port}, open_browser=False)"
+        # Go through the real hermes CLI entry point, not `python -c "<source>"`.
+        # On a PM (package-manager) dependency desync, EVERY Hermes entry point
+        # self-relaunches into the managed "store" interpreter on next run
+        # (hermes_bootstrap -> venv_sync.prepare_launch). For a `-c` invocation
+        # that relaunch takes a special-cased path that execs the store
+        # interpreter with exec("<the literal code string>") directly,
+        # bypassing hermes_cli.main's normal import chain -- the very thing
+        # that would activate this venv's site-packages (fastapi, uvicorn,
+        # etc.) onto sys.path. The relaunched process then dies immediately
+        # on the first third-party import, with nothing watching it, so the
+        # dashboard silently stays down for the rest of the container's life.
+        # `hermes dashboard` (a real script path) self-relaunches through the
+        # normal import chain and starts clean under the same desync.
+        exec "$VENV_DIR/bin/hermes" dashboard --host 127.0.0.1 --port "${port}" --skip-build --no-open
     ) &
     DASHBOARD_PIDS[$i]=$!
     echo "[run] [$name] Dashboard PID: ${DASHBOARD_PIDS[$i]}"

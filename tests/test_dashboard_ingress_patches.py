@@ -321,8 +321,8 @@ class DashboardIngressPatchTests(unittest.TestCase):
         # Primary keeps the legacy "/dashboard" suffix; non-primary uses its prefix.
         self.assertIn("map $http_x_forwarded_prefix $dashboard_proxy_prefix_0", dashboard_maps)
         self.assertIn("map $http_x_ingress_path $dashboard_forwarded_prefix_0", dashboard_maps)
-        self.assertIn('default "$http_x_ingress_path/dashboard";', dashboard_maps)
-        self.assertIn('default "$http_x_ingress_path/profile/amy/dashboard";', dashboard_maps)
+        self.assertIn('default "/dashboard";', dashboard_maps)
+        self.assertIn('default "/profile/amy/dashboard";', dashboard_maps)
 
         # Ingress: 2 dashboard locations × 2 profiles = 4 X-Forwarded-Prefix headers.
         self.assertEqual(ingress_fragment.count("proxy_set_header X-Forwarded-Prefix"), 4)

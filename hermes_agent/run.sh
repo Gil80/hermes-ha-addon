@@ -937,7 +937,22 @@ start_dashboard_for_profile() {
         # dashboard silently stays down for the rest of the container's life.
         # `hermes dashboard` (a real script path) self-relaunches through the
         # normal import chain and starts clean under the same desync.
-        exec "$VENV_DIR/bin/hermes" dashboard --host 127.0.0.1 --port "${port}" --skip-build --no-open
+        #
+        # The primary slot's home ($HOME/.hermes) does not sit under a
+        # "profiles" directory, so Hermes' own sticky-active-profile guard
+        # (hermes_cli/main.py::_apply_profile_override, which exempts any
+        # HERMES_HOME whose parent dir is literally named "profiles") does
+        # NOT cover it: a `hermes profile use <name>` run anywhere on this
+        # machine would silently redirect the primary dashboard onto that
+        # profile's home instead of its assigned one. Pin `-p default`
+        # for the primary slot only, mirroring desktop-backend-launcher.py's
+        # existing pin for the same reason. Named slots (i>0) already live
+        # under .../profiles/<name> and are already exempted by that guard.
+        dashboard_profile_args=()
+        if [ "$i" -eq 0 ]; then
+            dashboard_profile_args=(-p default)
+        fi
+        exec "$VENV_DIR/bin/hermes" "${dashboard_profile_args[@]}" dashboard --host 127.0.0.1 --port "${port}" --skip-build --no-open
     ) &
     DASHBOARD_PIDS[$i]=$!
     echo "[run] [$name] Dashboard PID: ${DASHBOARD_PIDS[$i]}"

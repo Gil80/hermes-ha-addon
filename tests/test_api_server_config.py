@@ -807,7 +807,7 @@ class PublicationMetadataTests(unittest.TestCase):
         config = CONFIG.read_text()
         match = re.search(r'^version:\s*["\']?([^"\'\s]+)', config, re.MULTILINE)
         self.assertIsNotNone(match)
-        self.assertEqual(match.group(1) if match else None, "1.3.4.1")
+        self.assertEqual(match.group(1) if match else None, "1.3.4.2")
 
     def test_translation_describes_api_password_policy(self):
         translation = TRANSLATION.read_text().lower()

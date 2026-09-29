@@ -6,7 +6,14 @@ The format follows the spirit of [Keep a Changelog](https://keepachangelog.com/e
 
 ## [Unreleased]
 
-## [1.3.4.1] - 2026-09-29
+## [1.3.4.2] - 2026-09-29
+
+### Fixed
+
+- **Reverted the `1.3.4.1` nginx ingress path change.** It was wrong: testing it with a direct `curl` against nginx (manually setting `X-Ingress-Path`) only proved nginx's local response, not what a real browser sees through HA's actual sidebar ingress chain. When accessed via HA's sidebar, the browser's address bar carries the full `/api/hassio_ingress/<token>` prefix, and every client-side `fetch()` the dashboard SPA makes resolves against that full path through HA core - not directly against this add-on's nginx. Stripping the token out of `__HERMES_BASE_PATH__` made the SPA's own API calls miss the token and 404 at HA core, before ever reaching this add-on. The original `"$http_x_ingress_path${prefix}/dashboard"` behavior in `emit_dashboard_maps` was correct for ingress access; restored it. Caught in review on PR #46 (thanks to the automated Devin review) before this reached a release.
+- Pin `-p default` for the primary dashboard slot's `hermes dashboard` invocation (mirroring the existing pin in `desktop-backend-launcher.py`). The `1.3.4.1` fix switched the dashboard launch to the real `hermes` CLI entry point, which re-enabled Hermes' own interactive-profile selection at import time; the primary slot's home (`$HOME/.hermes`) doesn't sit under a `profiles/` directory, so Hermes' sticky-`active_profile` guard does not exempt it the way it already does for named profile slots. A `hermes profile use <name>` run anywhere on the host could silently redirect the primary dashboard onto that profile's home. Also caught in PR #46 review.
+
+## [1.3.4.1] - 2026-09-26
 
 ### Fixed
 
